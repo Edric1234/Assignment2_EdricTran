@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -23,6 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -46,14 +51,22 @@ public class MarathonController {
     private final double laneHeight = 60;
     private final double topPadding = 30;
 
+    private Button startButton;
+    private Button pauseButton;
+    private Button exitButton;
+
     private MediaPlayer introPlayer;
 
     @FXML
     private void initialize() {
+        greetingAndStatusLabel.setText("\nWelcome to the Marathon Simulator!");
+        controlsVBox.setAlignment(Pos.CENTER);
+        
         createRunners();
         loadImages();
         loadIntroSound();
         loadRunningGif();
+        controlButtons();
         playSlideshow();
     }
 
@@ -94,7 +107,7 @@ public class MarathonController {
     //Updating the runnerInfoLabel every time the image of the runner switches
     private void updateInfo(int i) {
         Runner r = runners.get(i);
-        runnerInfoLabel.setText("Runner: " + r.getName() + " | #" + r.getNumber());
+        runnerInfoAndExtraInfoLabel.setText("Runner: " + r.getName() + " | #" + r.getNumber());
     }
 
     private void playSlideshow() {
@@ -110,14 +123,25 @@ public class MarathonController {
         fade.setOnFinished(e -> {
             currentIndex[0]++;
 
+            //Clears the slideshow once the last runner presentation animation 
+            //is finished
             if (currentIndex[0] >= runnerImages.length) {
                 introPlayer.stop();
-                runnerInfoLabel.setText("");
+                runnerInfoAndExtraInfoLabel.setText("");
                 centerStack.setStyle("-fx-background-color: white");
                 controlsVBox.setStyle("-fx-background-color: white");
-                
+
                 //Plays the marathon simulator once the slideshow finishes
                 marathonSimulator();
+
+                //Adjusts the VBox and StackPane height so that there's no gap
+                controlsVBox.setPrefHeight(200);
+                centerStack.setPrefHeight(trackHeight + 20);
+
+                //Enables the buttons once the slideshow finishes
+                startButton.setDisable(false);
+                pauseButton.setDisable(false);
+                exitButton.setDisable(false);
                 return;
             }
 
@@ -144,7 +168,53 @@ public class MarathonController {
         centerStack.getChildren().add(racePane);
         drawRaceTrack();
         createGifRunners();
-        startRace();
+    }
+
+    //Making the control buttons and implementing their logic
+    private void controlButtons() {
+        startButton = new Button("START");
+        pauseButton = new Button("PAUSE");
+        exitButton = new Button("EXIT");
+
+        startButton.setPrefSize(150, 60);
+        pauseButton.setPrefSize(150, 60);
+        exitButton.setPrefSize(150, 60);
+
+        startButton.setDisable(true);
+        pauseButton.setDisable(true);
+        exitButton.setDisable(true);
+
+        startButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
+                + "-fx-background-color: green; -fx-text-fill: white");
+        pauseButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
+                + "-fx-background-color: orange; -fx-text-fill: white");
+        exitButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
+                + "-fx-background-color: red; -fx-text-fill: white");
+
+        //Putting the buttons in an HBox and centering it
+        HBox buttonRow = new HBox(30, startButton, pauseButton, exitButton);
+        buttonRow.setAlignment(Pos.CENTER);
+
+        controlsVBox.getChildren().add(0, buttonRow);
+
+        startButton.setOnAction(e -> {
+            if (raceFinished) {
+                return; // race already finished: ignore
+            }
+            startRace();
+        });
+        pauseButton.setOnAction(e -> {
+            if (raceFinished) {
+                return; // race already finished: ignore
+            }
+            for (TranslateTransition tt : moveTransitions) {
+                tt.pause();
+            }
+            greetingAndStatusLabel.setText("\nRace paused");
+        });
+        exitButton.setOnAction(e -> {
+            Platform.exit();
+        });
     }
 
     //Making the race track
@@ -155,14 +225,14 @@ public class MarathonController {
         startBar.setStroke(Color.DARKGREEN);
 
         //Making the START text inside the green start rectangke
-        Text startText = new Text("START");
+        Text startText = new Text("S\tT\tA\tR\tT");
         startText.setFill(Color.DARKGREEN);
         startText.setStyle("-fx-font-weight: bold;");
         startText.setRotate(-90);
-        
+
         double centerTextX = startBar.getX() + startBar.getWidth() / 2.0;
         double centerTextY = startBar.getY() + startBar.getHeight() / 2.0;
-        
+
         double textWidth = startText.getLayoutBounds().getWidth();
         double textHeight = startText.getLayoutBounds().getHeight();
 
@@ -182,14 +252,14 @@ public class MarathonController {
         double finishLineWidth = 40;
         double finishLineHeight = laneHeight * 5;
         double checkerSquareSize = 10;
-        
+
         //Making the finish line
         for (int row = 0; row < finishLineHeight / checkerSquareSize; row++) {
             for (int col = 0; col < finishLineWidth / checkerSquareSize; col++) {
                 Rectangle checkerSquare = new Rectangle(finishX + col * checkerSquareSize,
                         topPadding + row * checkerSquareSize,
                         checkerSquareSize, checkerSquareSize);
-                
+
                 //Alternating black and white for the checker colors
                 if ((row + col) % 2 == 0) {
                     checkerSquare.setFill(Color.BLACK);
@@ -203,12 +273,11 @@ public class MarathonController {
         racePane.getChildren().addAll(startBar, startText);
     }
 
-    //Making the animation for the runners using the GIF
+    //Making the animation for the runners using GIF
     private void createGifRunners() {
-
         for (int i = 0; i < runners.size(); i++) {
             Runner r = runners.get(i);
-            
+
             //Making an imageview for each runner 
             //Setting their size so that they fit in the lane
             ImageView iv = new ImageView(runningGif);
@@ -218,16 +287,16 @@ public class MarathonController {
             //Centering each runners GIF
             double laneCenterY = topPadding + laneHeight * (i + 0.5);
 
-            iv.setLayoutX(startX);
+            iv.setLayoutX(20);
             iv.setLayoutY(laneCenterY - 30);
 
             racePane.getChildren().add(iv);
-            
+
             //Storing the imageview so that it can be changed to an image when 
             //arriving to the finish line
             runnerViews.add(iv);
 
-            double distance = finishX - startX;
+            double distance = finishX - 20;
             double time = distance / r.getSpeed();  // time = distance / speed
 
             TranslateTransition tt
@@ -244,7 +313,7 @@ public class MarathonController {
 
     //Starts the race
     private void startRace() {
-        greetingLabel.setText("Race in progress...");
+        greetingAndStatusLabel.setText("\nRace in progress...");
 
         for (TranslateTransition tt : moveTransitions) {
             tt.play();
@@ -253,21 +322,23 @@ public class MarathonController {
 
     private void onRunnerFinished(Runner r) {
         int idx = runners.indexOf(r);
-        
+
         //Converts the running GIF to the runner's image when finish
         if (idx < runnerViews.size()) {
             ImageView iv = runnerViews.get(idx);
             iv.setImage(runnerImages[idx]);
         }
-        
+
         //The first that finishes the race is the winner
         if (!raceFinished) {
             raceFinished = true;
 
-            String msg = "Winner: " + r.getName() + " ( #" + r.getNumber() + " )";
-            greetingLabel.setText(msg);
-            runnerInfoLabel.setText("Race finished");
-
+            String msg = "\nCongratulations " + r.getName() + " (#" + r.getNumber() + ")!";
+            greetingAndStatusLabel.setText(msg);
+            runnerInfoAndExtraInfoLabel.setText("Race finished \nAnimations used:"
+                    + " Fade, TranslateTransition, GIF animation"
+                    + " \nLayout details: BorderPane as root, Pane for the race track"
+                    + ", VBox for the buttons and labels");
             showWinnerWindow(r);
         }
     }
@@ -298,13 +369,10 @@ public class MarathonController {
     private VBox controlsVBox;
 
     @FXML
-    private Label greetingLabel;
+    private Label greetingAndStatusLabel;
 
     @FXML
-    private Label runnerInfoLabel;
-
-    @FXML
-    private Label marathonStatusLabel;
+    private Label runnerInfoAndExtraInfoLabel;
 
     @FXML
     private ImageView slideshowImageView;
