@@ -123,7 +123,7 @@ public class MarathonController {
     }
 
     private void playSlideshow() {
-        final int[] currentIndex = {4};
+        final int[] currentIndex = {0};
 
         slideshowImageView.setImage(runnerImages[currentIndex[0]]);
         updateInfo(currentIndex[0]);
@@ -236,7 +236,7 @@ public class MarathonController {
         startBar.setFill(Color.LIGHTGREEN);
         startBar.setStroke(Color.DARKGREEN);
 
-        //Making the START text inside the green start rectangke
+        //Making the START text inside the green start rectangle
         Text startText = new Text("S\tT\tA\tR\tT");
         startText.setFill(Color.DARKGREEN);
         startText.setStyle("-fx-font-weight: bold;");
