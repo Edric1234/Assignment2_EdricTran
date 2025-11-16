@@ -16,7 +16,7 @@
       </StackPane>
    </center>
    <bottom>
-      <VBox prefHeight="54.0" prefWidth="800.0" BorderPane.alignment="CENTER_LEFT">
+      <VBox fx:id="controlsVBox" prefHeight="54.0" prefWidth="800.0" BorderPane.alignment="CENTER_LEFT">
          <children>
             <Label fx:id="greetingLabel" style="-fx-font-size: 16; -fx-font-weight: bold;" text="Welcome to the Marathon Simulator!" />
             <Label fx:id="runnerInfoLabel" />

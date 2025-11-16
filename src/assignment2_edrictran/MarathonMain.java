@@ -31,5 +31,4 @@ public class MarathonMain extends Application {
         stage.setScene(scene);
         stage.show();
     }
-
 }
