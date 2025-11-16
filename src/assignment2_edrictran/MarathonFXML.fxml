@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="assignment2_edrictran.MarathonController">
+   <center>
+      <StackPane fx:id="centerStack" style="-fx-background-color: #F5E6C8;" BorderPane.alignment="CENTER">
+         <children>
+            <ImageView fx:id="slideshowImageView" fitHeight="350.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
+         </children>
+      </StackPane>
+   </center>
+   <bottom>
+      <VBox prefHeight="54.0" prefWidth="800.0" BorderPane.alignment="CENTER_LEFT">
+         <children>
+            <Label fx:id="greetingLabel" style="-fx-font-size: 16; -fx-font-weight: bold;" text="Welcome to the Marathon Simulator!" />
+            <Label fx:id="runnerInfoLabel" />
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </bottom>
+</BorderPane>
