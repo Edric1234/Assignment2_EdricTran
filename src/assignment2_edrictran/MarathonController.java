@@ -27,18 +27,17 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class MarathonController {
 
     private final List<Runner> runners = new ArrayList<>();
-    private Image[] runnerImages = new Image[5];
+    private final Image[] runnerImages = new Image[5];
     private FadeTransition fade;
     private Image runningGif;
 
-    private Pane racePane = new Pane();
+    private final Pane racePane = new Pane();
     private final List<ImageView> runnerViews = new ArrayList<>();
     private final List<TranslateTransition> moveTransitions = new ArrayList<>();
     private boolean raceFinished = false;
@@ -103,10 +102,23 @@ public class MarathonController {
         introPlayer.setAutoPlay(true);
         introPlayer.setVolume(0.5);
     }
+    
+    private void loadVictorySound() {
+        File file = new File("sounds/victorySound.mp3");
+
+        String soundPath = file.toURI().toString();
+
+        Media media = new Media(soundPath);
+        introPlayer = new MediaPlayer(media);
+
+        introPlayer.setAutoPlay(true);
+        introPlayer.setVolume(0.5);
+    }
 
     //Updating the runnerInfoLabel every time the image of the runner switches
     private void updateInfo(int i) {
         Runner r = runners.get(i);
+        runnerInfoAndExtraInfoLabel.setStyle("-fx-font-size: 18");
         runnerInfoAndExtraInfoLabel.setText("Runner: " + r.getName() + " | #" + r.getNumber());
     }
 
@@ -319,7 +331,7 @@ public class MarathonController {
             tt.play();
         }
     }
-
+    
     private void onRunnerFinished(Runner r) {
         int idx = runners.indexOf(r);
 
@@ -335,6 +347,8 @@ public class MarathonController {
 
             String msg = "\nCongratulations " + r.getName() + " (#" + r.getNumber() + ")!";
             greetingAndStatusLabel.setText(msg);
+            greetingAndStatusLabel.setStyle("-fx-font-size: 20");
+            runnerInfoAndExtraInfoLabel.setStyle("-fx-font-size: 12");
             runnerInfoAndExtraInfoLabel.setText("Race finished \nAnimations used:"
                     + " Fade, TranslateTransition, GIF animation"
                     + " \nLayout details: BorderPane as root, Pane for the race track"
@@ -342,8 +356,10 @@ public class MarathonController {
             showWinnerWindow(r);
         }
     }
-
+    
+    //Displays a new window to announce the winner
     private void showWinnerWindow(Runner r) {
+        loadVictorySound();
         Label winnerLabel = new Label(
                 "Winner: " + r.getName() + " ( #" + r.getNumber() + " )\n"
                 + "Congratulations!"
