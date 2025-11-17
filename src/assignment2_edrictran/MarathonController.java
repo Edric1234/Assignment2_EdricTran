@@ -213,6 +213,8 @@ public class MarathonController {
             if (raceFinished) {
                 return; // race already finished: ignore
             }
+            startButton.setDisable(true);
+            pauseButton.setDisable(false);
             startRace();
         });
         pauseButton.setOnAction(e -> {
@@ -222,6 +224,8 @@ public class MarathonController {
             for (TranslateTransition tt : moveTransitions) {
                 tt.pause();
             }
+            startButton.setDisable(false);
+            pauseButton.setDisable(true);
             greetingAndStatusLabel.setText("\nRace paused");
         });
         exitButton.setOnAction(e -> {
@@ -352,7 +356,7 @@ public class MarathonController {
             runnerInfoAndExtraInfoLabel.setText("Race finished \nAnimations used:"
                     + " Fade, TranslateTransition, GIF animation"
                     + " \nLayout details: BorderPane as root, Pane for the race track"
-                    + ", VBox for the buttons and labels");
+                    + ", VBox for the buttons and labels at the bottom");
             showWinnerWindow(r);
         }
     }
