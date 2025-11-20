@@ -53,6 +53,8 @@ public class MarathonController {
     private Button startButton;
     private Button pauseButton;
     private Button exitButton;
+    private Button skipButton;
+    private HBox buttonRow;
 
     private MediaPlayer introPlayer;
 
@@ -60,7 +62,7 @@ public class MarathonController {
     private void initialize() {
         greetingAndStatusLabel.setText("\nWelcome to the Marathon Simulator!");
         controlsVBox.setAlignment(Pos.CENTER);
-        
+
         createRunners();
         loadImages();
         loadIntroSound();
@@ -78,9 +80,9 @@ public class MarathonController {
         runners.add(new Runner("Alex", 5, Color.web("#0ed145"), randSpeed()));
     }
 
-    //Generating a random speed for each runner (250-400 pixels per second)
+    //Generating a random speed for each runner (100-200 pixels per second)
     private double randSpeed() {
-        return 250 + Math.random() * 150;
+        return 100 + Math.random() * 100;
     }
 
     private void loadImages() {
@@ -102,7 +104,7 @@ public class MarathonController {
         introPlayer.setAutoPlay(true);
         introPlayer.setVolume(0.5);
     }
-    
+
     private void loadVictorySound() {
         File file = new File("sounds/victorySound.mp3");
 
@@ -150,10 +152,6 @@ public class MarathonController {
                 controlsVBox.setPrefHeight(200);
                 centerStack.setPrefHeight(trackHeight + 20);
 
-                //Enables the buttons once the slideshow finishes
-                startButton.setDisable(false);
-                pauseButton.setDisable(false);
-                exitButton.setDisable(false);
                 return;
             }
 
@@ -175,6 +173,11 @@ public class MarathonController {
         //Clears the slideshow
         centerStack.getChildren().clear();
 
+        //Removes the skip button once the slideshow finishes or gets skipped
+        //Adds the start, pause and exit button when the marathon simulator starts
+        controlsVBox.getChildren().remove(skipButton);
+        controlsVBox.getChildren().add(0, buttonRow);
+
         racePane.setPrefSize(trackWidth, trackHeight);
         racePane.setStyle("-fx-background-color: white; -fx-border-color: black;");
         centerStack.getChildren().add(racePane);
@@ -187,14 +190,12 @@ public class MarathonController {
         startButton = new Button("START");
         pauseButton = new Button("PAUSE");
         exitButton = new Button("EXIT");
+        skipButton = new Button("SKIP");
 
         startButton.setPrefSize(150, 60);
         pauseButton.setPrefSize(150, 60);
         exitButton.setPrefSize(150, 60);
-
-        startButton.setDisable(true);
-        pauseButton.setDisable(true);
-        exitButton.setDisable(true);
+        skipButton.setPrefSize(150, 60);
 
         startButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
                 + "-fx-background-color: green; -fx-text-fill: white");
@@ -202,12 +203,14 @@ public class MarathonController {
                 + "-fx-background-color: orange; -fx-text-fill: white");
         exitButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
                 + "-fx-background-color: red; -fx-text-fill: white");
+        skipButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;"
+                + "-fx-background-color: #90d5ff; -fx-text-fill: white");
 
         //Putting the buttons in an HBox and centering it
-        HBox buttonRow = new HBox(30, startButton, pauseButton, exitButton);
+        buttonRow = new HBox(30, startButton, pauseButton, exitButton);
         buttonRow.setAlignment(Pos.CENTER);
 
-        controlsVBox.getChildren().add(0, buttonRow);
+        controlsVBox.getChildren().add(0, skipButton);
 
         startButton.setOnAction(e -> {
             if (raceFinished) {
@@ -230,6 +233,18 @@ public class MarathonController {
         });
         exitButton.setOnAction(e -> {
             Platform.exit();
+        });
+        skipButton.setOnAction(e -> {
+            if (fade != null) {
+                fade.stop();
+            }
+            if (introPlayer != null) {
+                introPlayer.stop();
+            }
+            runnerInfoAndExtraInfoLabel.setText("");
+            marathonSimulator();
+            controlsVBox.setPrefHeight(200);
+            centerStack.setPrefHeight(trackHeight + 20);
         });
     }
 
@@ -335,7 +350,7 @@ public class MarathonController {
             tt.play();
         }
     }
-    
+
     private void onRunnerFinished(Runner r) {
         int idx = runners.indexOf(r);
 
@@ -360,7 +375,7 @@ public class MarathonController {
             showWinnerWindow(r);
         }
     }
-    
+
     //Displays a new window to announce the winner
     private void showWinnerWindow(Runner r) {
         loadVictorySound();
@@ -370,8 +385,12 @@ public class MarathonController {
         );
         winnerLabel.setStyle("-fx-font-size: 18; -fx-padding: 20; -fx-text-alignment: center;");
 
-        VBox vbox = new VBox(winnerLabel);
-        vbox.setStyle("-fx-alignment: center; -fx-background-color: white;");
+        Button exitWinnerButton = new Button("Exit");
+        exitWinnerButton.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
+
+        VBox vbox = new VBox(winnerLabel, exitWinnerButton);
+        vbox.setStyle("-fx-alignment: center; -fx-background-color: white;"
+                + "-fx-padding: 20");
 
         Stage winnerStage = new Stage();
         winnerStage.setTitle("Race Result");
@@ -380,6 +399,13 @@ public class MarathonController {
         winnerStage.setScene(scene);
 
         winnerStage.show();
+
+        exitWinnerButton.setOnAction(e -> {
+            if (introPlayer != null) {
+                introPlayer.stop();
+            }
+            winnerStage.close();
+        });
     }
 
     @FXML
